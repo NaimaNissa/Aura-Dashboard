@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Users, Plus, Edit, Trash2, User, Mail, Phone, MapPin, ShoppingBag } from 'lucide-react';
 import SimpleNav from '../../components/SimpleNav';
@@ -21,6 +21,7 @@ export default function CustomersPage() {
     Address: '',
     OrderID: ''
   });
+  const [emailError, setEmailError] = useState('');
 
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const router = useRouter();
@@ -50,12 +51,56 @@ export default function CustomersPage() {
     }
   };
 
+  const checkEmailExists = async (email, excludeId = null) => {
+    if (!email.trim()) return false;
+    
+    try {
+      const q = query(collection(db, 'customers'), where('Email', '==', email.trim().toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      
+      // If editing, exclude the current customer from the check
+      if (excludeId) {
+        return querySnapshot.docs.some(doc => doc.id !== excludeId);
+      }
+      
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.FullName.trim()) {
+      alert('Full name is required');
+      return;
+    }
+
+    // Check for duplicate email
+    if (formData.Email.trim()) {
+      const emailExists = await checkEmailExists(
+        formData.Email, 
+        editingCustomer?.id
+      );
+      
+      if (emailExists) {
+        alert('A customer with this email already exists. Please use a different email address.');
+        return;
+      }
+    }
+
     try {
       const customerData = {
         ...formData,
-        createdAt: new Date().toISOString(),
+        Email: formData.Email.trim().toLowerCase(), // Normalize email
+        FullName: formData.FullName.trim(),
+        Contact: formData.Contact.trim(),
+        Address: formData.Address.trim(),
+        OrderID: formData.OrderID.trim(),
+        createdAt: editingCustomer ? editingCustomer.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
@@ -69,6 +114,7 @@ export default function CustomersPage() {
 
       setShowForm(false);
       setEditingCustomer(null);
+      setEmailError('');
       setFormData({
         FullName: '',
         Email: '',
@@ -336,6 +382,7 @@ export default function CustomersPage() {
                 onClick={() => {
                   setShowForm(false);
                   setEditingCustomer(null);
+                  setEmailError('');
                   setFormData({
                     FullName: '',
                     Email: '',
@@ -373,10 +420,32 @@ export default function CustomersPage() {
                   <input
                     type="email"
                     value={formData.Email}
-                    onChange={(e) => setFormData({...formData, Email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={async (e) => {
+                      const email = e.target.value;
+                      setFormData({...formData, Email: email});
+                      
+                      // Clear previous error
+                      setEmailError('');
+                      
+                      // Check for duplicate email if email is provided
+                      if (email.trim()) {
+                        const emailExists = await checkEmailExists(email, editingCustomer?.id);
+                        if (emailExists) {
+                          setEmailError('This email is already registered');
+                        }
+                      }
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      emailError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="customer@example.com"
                   />
+                  {emailError && (
+                    <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
+                      <span>⚠️</span>
+                      {emailError}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -425,6 +494,7 @@ export default function CustomersPage() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingCustomer(null);
+                    setEmailError('');
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
@@ -432,7 +502,12 @@ export default function CustomersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                  disabled={!!emailError}
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg ${
+                    emailError 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 >
                   {editingCustomer ? 'Update Customer' : 'Create Customer'}
                 </button>
