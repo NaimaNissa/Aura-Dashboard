@@ -8,7 +8,7 @@ import SimpleNav from '../../components/SimpleNav';
 
 export default function ShippingCostsPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, isInitialized } = useSelector((state) => state.auth);
   const [shippingCosts, setShippingCosts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,13 +21,15 @@ export default function ShippingCostsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (isInitialized && !isAuthenticated) {
       router.push('/auth');
       return;
     }
     
-    fetchShippingCosts();
-  }, [isAuthenticated, router]);
+    if (isInitialized && isAuthenticated) {
+      fetchShippingCosts();
+    }
+  }, [isAuthenticated, isInitialized, router]);
 
   const fetchShippingCosts = async () => {
     try {
@@ -152,12 +154,14 @@ export default function ShippingCostsPage() {
     cost.country.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isAuthenticated) {
+  if (!isInitialized || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">
+            {!isInitialized ? 'Initializing authentication...' : 'Loading...'}
+          </p>
         </div>
       </div>
     );

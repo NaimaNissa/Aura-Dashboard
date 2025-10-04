@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { X, Package, DollarSign, Hash, Palette, FileText, Star } from 'lucide-react';
+import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen } from 'lucide-react';
 import { createProduct, updateProduct } from '../../store/slices/productSlice';
 import { closeModal } from '../../store/slices/uiSlice';
 
@@ -10,6 +10,23 @@ export default function CreateProductModal() {
   const dispatch = useDispatch();
   const { modals } = useSelector((state) => state.ui);
   const { isLoading } = useSelector((state) => state.product);
+  
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // Load categories
+  const loadCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const { getActiveCategories } = await import('../../lib/categoryService');
+      const categoriesData = await getActiveCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     productname: '',
@@ -71,6 +88,13 @@ export default function CreateProductModal() {
       category: '',
     });
   };
+
+  // Load categories when modal opens
+  useEffect(() => {
+    if (modals.createProduct) {
+      loadCategories();
+    }
+  }, [modals.createProduct]);
 
   // Load edit data if editing
   React.useEffect(() => {
@@ -235,17 +259,32 @@ export default function CreateProductModal() {
 
             <div>
               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                <FolderOpen className="w-4 h-4 inline mr-1" />
                 Category
               </label>
-              <input
+              <select
                 id="category"
                 name="category"
-                type="text"
                 value={formData.category}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                placeholder="e.g., Electronics, Clothing"
-              />
+                disabled={loadingCategories}
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.icon} {category.name}
+                  </option>
+                ))}
+              </select>
+              {loadingCategories && (
+                <p className="text-sm text-gray-500 mt-1">Loading categories...</p>
+              )}
+              {categories.length === 0 && !loadingCategories && (
+                <p className="text-sm text-gray-500 mt-1">
+                  No categories found. <a href="/categories" className="text-blue-600 hover:underline">Create one first</a>
+                </p>
+              )}
             </div>
           </div>
 
@@ -275,12 +314,15 @@ export default function CreateProductModal() {
             <textarea
               id="KeyFeatures"
               name="KeyFeatures"
-              rows={3}
+              rows={4}
               value={formData.KeyFeatures}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-              placeholder="Enter key features of the product"
+              placeholder="Enter key features separated by commas (e.g., High Resolution Camera, Fast Processor, Long Battery Life, 5G Connectivity)"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Separate each feature with a comma. Features will be displayed as individual items on the product page.
+            </p>
           </div>
 
           {/* Actions */}

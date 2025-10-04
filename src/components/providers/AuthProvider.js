@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
-import { setUser } from '../../store/slices/authSlice';
+import { setUser, setInitialized } from '../../store/slices/authSlice';
 
 const AuthContext = createContext({});
 
@@ -38,6 +38,7 @@ export default function AuthProvider({ children }) {
       }
       
       setIsInitialized(true);
+      dispatch(setInitialized(true));
     });
 
     return () => unsubscribe();
@@ -56,7 +57,7 @@ export default function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{}}>
+    <AuthContext.Provider value={{ isInitialized }}>
       {children}
     </AuthContext.Provider>
   );

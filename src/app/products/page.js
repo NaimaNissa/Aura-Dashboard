@@ -17,12 +17,13 @@ export default function ProductsPage() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { filteredProducts, isLoading, error } = useSelector((state) => state.product);
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, isInitialized } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    console.log('Products page - Auth check:', { isAuthenticated, user: user?.email });
+    console.log('Products page - Auth check:', { isAuthenticated, isInitialized, user: user?.email });
     
-    if (!isAuthenticated) {
+    // Only check auth after initialization
+    if (isInitialized && !isAuthenticated) {
       console.log('Not authenticated, redirecting to auth page');
       router.push('/auth');
       return;
@@ -30,7 +31,7 @@ export default function ProductsPage() {
     
     console.log('Authenticated, fetching products...');
     dispatch(fetchProducts());
-  }, [dispatch, isAuthenticated, router, user]);
+  }, [dispatch, isAuthenticated, isInitialized, router, user]);
 
   const handleCreateProduct = () => {
     dispatch(openModal('createProduct'));

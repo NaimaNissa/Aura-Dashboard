@@ -5,17 +5,21 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, isInitialized } = useSelector((state) => state.auth);
   const router = useRouter();
 
   useEffect(() => {
-    console.log('🏠 Home page - Auth status:', isAuthenticated);
-    if (isAuthenticated) {
-      router.push('/products');
-    } else {
-      router.push('/auth');
+    console.log('🏠 Home page - Auth status:', { isAuthenticated, isInitialized });
+    
+    // Only redirect after auth is initialized
+    if (isInitialized) {
+      if (isAuthenticated) {
+        router.push('/products');
+      } else {
+        router.push('/auth');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isInitialized, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">

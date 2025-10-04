@@ -25,7 +25,36 @@ export default function LoginForm({ onToggleForm }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch(clearError());
-    dispatch(loginUser(formData));
+    
+    try {
+      // Check if user has admin approval before allowing login
+      const { checkUserApprovalStatus } = await import('../../lib/userApprovalService');
+      const approvalStatus = await checkUserApprovalStatus(formData.email);
+      
+      if (!approvalStatus) {
+        alert('No admin access request found for this email. Please register first to request admin access.');
+        return;
+      }
+      
+      if (approvalStatus.status === 'pending') {
+        alert('Your admin access request is still pending approval. Please wait for an existing admin to approve your request.');
+        return;
+      }
+      
+      if (approvalStatus.status === 'rejected') {
+        alert('Your admin access request has been rejected. Please contact an existing admin for more information.');
+        return;
+      }
+      
+      if (approvalStatus.status === 'approved') {
+        // User is approved, proceed with login
+        dispatch(loginUser(formData));
+      }
+      
+    } catch (error) {
+      console.error('Error checking approval status:', error);
+      alert('Error checking approval status. Please try again.');
+    }
   };
 
   return (

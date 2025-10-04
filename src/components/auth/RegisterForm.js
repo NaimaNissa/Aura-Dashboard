@@ -11,7 +11,8 @@ export default function RegisterForm({ onToggleForm }) {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user', // Default role
+    role: 'admin', // Default role for dashboard
+    reason: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -34,21 +35,50 @@ export default function RegisterForm({ onToggleForm }) {
       return;
     }
     
-    dispatch(clearError());
-    dispatch(registerUser({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-    }));
+    if (!formData.reason.trim()) {
+      alert('Please provide a reason for requesting admin access');
+      return;
+    }
+    
+    try {
+      dispatch(clearError());
+      
+      // Create approval request instead of direct registration
+      const { createUserApprovalRequest } = await import('../../lib/userApprovalService');
+      await createUserApprovalRequest({
+        displayName: formData.name,
+        email: formData.email,
+        role: formData.role,
+        reason: formData.reason
+      });
+      
+      alert('Your admin access request has been submitted. You will be notified once it\'s reviewed by an existing admin.');
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: 'admin',
+        reason: '',
+      });
+      
+    } catch (error) {
+      console.error('Error creating approval request:', error);
+      alert('Failed to submit request. Please try again.');
+    }
   };
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white shadow-lg rounded-lg p-8">
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
-          Create Account
+          Request Admin Access
         </h2>
+        <p className="text-center text-gray-600 mb-8">
+          Submit a request for admin access to the AuraDashboard
+        </p>
         
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
@@ -151,6 +181,23 @@ export default function RegisterForm({ onToggleForm }) {
             </div>
           </div>
 
+          {/* Reason for Admin Access */}
+          <div>
+            <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-2">
+              Reason for Admin Access *
+            </label>
+            <textarea
+              id="reason"
+              name="reason"
+              required
+              value={formData.reason}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Please explain why you need admin access to the dashboard..."
+            />
+          </div>
+
           {/* Role Selection */}
           <div>
             <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,7 +210,6 @@ export default function RegisterForm({ onToggleForm }) {
               onChange={handleChange}
               className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
@@ -173,7 +219,7 @@ export default function RegisterForm({ onToggleForm }) {
             disabled={isLoading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200"
           >
-            {isLoading ? 'Creating account...' : 'Register'}
+            {isLoading ? 'Submitting request...' : 'Request Admin Access'}
           </button>
         </form>
 

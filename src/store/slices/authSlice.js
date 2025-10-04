@@ -88,6 +88,7 @@ const initialState = {
   isLoading: false,
   error: null,
   isAuthenticated: false,
+  isInitialized: false,
 };
 
 const authSlice = createSlice({
@@ -98,6 +99,9 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
       state.error = null; // Clear any previous errors
+    },
+    setInitialized: (state, action) => {
+      state.isInitialized = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -144,6 +148,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, clearError, resetAuthState } = authSlice.actions;
+export const { setUser, setInitialized, clearError, resetAuthState } = authSlice.actions;
 export default authSlice.reducer;
 
