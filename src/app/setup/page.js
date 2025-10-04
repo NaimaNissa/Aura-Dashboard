@@ -213,7 +213,7 @@ export default function SetupPage() {
             <h3 className="text-sm font-medium text-blue-900 mb-2">Important Notes:</h3>
             <ul className="text-xs text-blue-800 space-y-1">
               <li>• This will create the first admin account</li>
-              <li>• You'll be able to approve other admin requests</li>
+              <li>• You&apos;ll be able to approve other admin requests</li>
               <li>• Keep your credentials secure</li>
               <li>• You can access the dashboard after setup</li>
             </ul>
