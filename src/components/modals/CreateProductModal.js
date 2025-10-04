@@ -13,6 +13,7 @@ export default function CreateProductModal() {
 
   const [formData, setFormData] = useState({
     productname: '',
+    brand: '',
     Description: '',
     Price: '',
     Quantity: '',
@@ -41,9 +42,9 @@ export default function CreateProductModal() {
       Quantity: formData.Quantity || '0',
     };
 
-    if (modals.editProductData) {
+    if (modals.createProductData) {
       dispatch(updateProduct({
-        id: modals.editProductData.id,
+        id: modals.createProductData.id,
         updates: productData
       })).then(() => {
         handleClose();
@@ -59,6 +60,7 @@ export default function CreateProductModal() {
     dispatch(closeModal('createProduct'));
     setFormData({
       productname: '',
+      brand: '',
       Description: '',
       Price: '',
       Quantity: '',
@@ -72,20 +74,21 @@ export default function CreateProductModal() {
 
   // Load edit data if editing
   React.useEffect(() => {
-    if (modals.editProductData) {
+    if (modals.createProductData) {
       setFormData({
-        productname: modals.editProductData.productname || '',
-        Description: modals.editProductData.Description || '',
-        Price: modals.editProductData.Price || '',
-        Quantity: modals.editProductData.Quantity || '',
-        productID: modals.editProductData.productID || '',
-        productImg: modals.editProductData.productImg || '',
-        Colors: modals.editProductData.Colors || '',
-        KeyFeatures: modals.editProductData.KeyFeatures || '',
-        category: modals.editProductData.category || '',
+        productname: modals.createProductData.productname || '',
+        brand: modals.createProductData.brand || '',
+        Description: modals.createProductData.Description || '',
+        Price: modals.createProductData.Price || '',
+        Quantity: modals.createProductData.Quantity || '',
+        productID: modals.createProductData.productID || '',
+        productImg: modals.createProductData.productImg || '',
+        Colors: modals.createProductData.Colors || '',
+        KeyFeatures: modals.createProductData.KeyFeatures || '',
+        category: modals.createProductData.category || '',
       });
     }
-  }, [modals.editProductData]);
+  }, [modals.createProductData]);
 
   if (!modals.createProduct) return null;
 
@@ -96,7 +99,7 @@ export default function CreateProductModal() {
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Package className="w-5 h-5" />
-            {modals.editProductData ? 'Edit Product' : 'Create New Product'}
+            {modals.createProductData ? 'Edit Product' : 'Create New Product'}
           </h2>
           <button
             onClick={handleClose}
@@ -121,23 +124,41 @@ export default function CreateProductModal() {
                 required
                 value={formData.productname}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="Enter product name"
               />
             </div>
 
             <div>
-              <label htmlFor="productID" className="block text-sm font-medium text-gray-700 mb-1">
-                <Hash className="w-4 h-4 inline mr-1" />
-                Product ID
+              <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1">
+                <Package className="w-4 h-4 inline mr-1" />
+                Brand
               </label>
+              <input
+                id="brand"
+                name="brand"
+                type="text"
+                value={formData.brand}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                placeholder="Enter brand name"
+              />
+            </div>
+          </div>
+
+          {/* Product ID */}
+          <div>
+            <label htmlFor="productID" className="block text-sm font-medium text-gray-700 mb-1">
+              <Hash className="w-4 h-4 inline mr-1" />
+              Product ID
+            </label>
               <input
                 id="productID"
                 name="productID"
                 type="text"
                 value={formData.productID}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="Enter product ID"
               />
             </div>
@@ -155,7 +176,7 @@ export default function CreateProductModal() {
               rows={3}
               value={formData.Description}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
               placeholder="Enter product description"
             />
           </div>
@@ -175,7 +196,7 @@ export default function CreateProductModal() {
                 required
                 value={formData.Price}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="0.00"
               />
             </div>
@@ -190,7 +211,7 @@ export default function CreateProductModal() {
                 type="number"
                 value={formData.Quantity}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="0"
               />
             </div>
@@ -208,7 +229,7 @@ export default function CreateProductModal() {
                 type="url"
                 value={formData.productImg}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="https://example.com/image.jpg"
               />
             </div>
@@ -223,7 +244,7 @@ export default function CreateProductModal() {
                 type="text"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="e.g., Electronics, Clothing"
               />
             </div>
@@ -241,7 +262,7 @@ export default function CreateProductModal() {
               type="text"
               value={formData.Colors}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
               placeholder="Red, Blue, Green"
             />
           </div>
@@ -258,7 +279,7 @@ export default function CreateProductModal() {
               rows={3}
               value={formData.KeyFeatures}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
               placeholder="Enter key features of the product"
             />
           </div>
@@ -277,7 +298,7 @@ export default function CreateProductModal() {
               disabled={isLoading || !formData.productname.trim() || !formData.Price.trim()}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Saving...' : (modals.editProductData ? 'Update Product' : 'Create Product')}
+              {isLoading ? 'Saving...' : (modals.createProductData ? 'Update Product' : 'Create Product')}
             </button>
           </div>
         </form>

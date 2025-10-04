@@ -2,7 +2,7 @@
 
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { Package, ShoppingCart, LogOut, User, Users, FileText, Truck } from 'lucide-react';
+import { Package, ShoppingCart, LogOut, User, Users, FileText, Truck, MessageSquare, Mail, Image, Globe } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
 
 export default function SimpleNav() {
@@ -60,6 +60,34 @@ export default function SimpleNav() {
             >
               <Truck className="w-4 h-4" />
               Shipments
+            </a>
+            <a
+              href="/reviews"
+              className="text-gray-700 hover:text-blue-600 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Reviews
+            </a>
+            <a
+              href="/contact-messages"
+              className="text-gray-700 hover:text-blue-600 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <Mail className="w-4 h-4" />
+              Contact Messages
+            </a>
+            <a
+              href="/product-images"
+              className="text-gray-700 hover:text-blue-600 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <Image className="w-4 h-4" />
+              Product Images
+            </a>
+            <a
+              href="/shipping-costs"
+              className="text-gray-700 hover:text-blue-600 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <Globe className="w-4 h-4" />
+              Shipping Costs
             </a>
           </div>
 
