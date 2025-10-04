@@ -147,7 +147,7 @@ export default function CreateProductModal() {
           </div>
 
           {/* Product ID */}
-          <div>
+            <div>
             <label htmlFor="productID" className="block text-sm font-medium text-gray-700 mb-1">
               <Hash className="w-4 h-4 inline mr-1" />
               Product ID
@@ -162,7 +162,6 @@ export default function CreateProductModal() {
                 placeholder="Enter product ID"
               />
             </div>
-          </div>
 
           {/* Description */}
           <div>
