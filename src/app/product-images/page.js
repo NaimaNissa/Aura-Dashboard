@@ -55,6 +55,12 @@ export default function ProductImagesPage() {
     }
   };
 
+  // Function to refresh products when colors are updated
+  const refreshProducts = () => {
+    console.log('🔄 Refreshing products due to color changes...');
+    fetchProducts();
+  };
+
   const getColorImages = (product) => {
     if (product.colorImages && typeof product.colorImages === 'object') {
       return product.colorImages;
@@ -68,6 +74,7 @@ export default function ProductImagesPage() {
       const colorKey = color.toLowerCase().replace(/\s+/g, '');
       colorImages[colorKey] = {
         name: color,
+        displayName: color,
         images: [product.productImg || 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop'],
         price: parseFloat(product.Price) || 0
       };
@@ -311,6 +318,13 @@ export default function ProductImagesPage() {
               Manage color-based images for your products (max 10 images per color)
             </p>
           </div>
+          <button
+            onClick={refreshProducts}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <Package className="w-4 h-4" />
+            Refresh Products
+          </button>
         </div>
 
         {/* Error Display */}

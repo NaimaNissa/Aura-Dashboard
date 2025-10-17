@@ -60,35 +60,37 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-gray-50">
       <SimpleNav />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Package className="w-6 h-6" />
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Package className="w-5 h-5 sm:w-6 sm:h-6" />
               Products
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} in inventory
             </p>
           </div>
 
           {/* Action Buttons */}
           {isAdmin && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 onClick={handleBulkUpload}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <Upload className="w-4 h-4" />
-                Bulk Upload
+                <span className="hidden sm:inline">Bulk Upload</span>
+                <span className="sm:hidden">Upload</span>
               </button>
               <button
                 onClick={handleCreateProduct}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <Plus className="w-4 h-4" />
-                Add Product
+                <span className="hidden sm:inline">Add Product</span>
+                <span className="sm:hidden">Add</span>
               </button>
             </div>
           )}

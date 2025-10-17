@@ -41,7 +41,7 @@ export default function ProductGrid() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
       {filteredProducts.map((product) => (
         <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
           {/* Product Image */}
@@ -71,12 +71,12 @@ export default function ProductGrid() {
           </div>
 
           {/* Product Info */}
-          <div className="p-4">
-            <h3 className="font-semibold text-gray-900 text-lg mb-2 line-clamp-2">
+          <div className="p-3 sm:p-4">
+            <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">
               {product.productname}
             </h3>
             
-            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+            <p className="text-gray-600 text-xs sm:text-sm mb-3 line-clamp-2">
               {product.Description}
             </p>
 
@@ -125,29 +125,34 @@ export default function ProductGrid() {
 
             {/* Action Buttons */}
             {isAdmin && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <button
                   onClick={() => handleEdit(product)}
-                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-xs sm:text-sm"
                 >
-                  <Edit className="w-4 h-4" />
-                  Edit
+                  <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Edit</span>
                 </button>
                 <button
                   onClick={() => handleToggleStock(product)}
-                  className={`px-3 py-2 rounded-lg text-sm ${
+                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm ${
                     parseInt(product.Quantity) > 0
                       ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {parseInt(product.Quantity) > 0 ? 'Out of Stock' : 'In Stock'}
+                  <span className="hidden sm:inline">
+                    {parseInt(product.Quantity) > 0 ? 'Out of Stock' : 'In Stock'}
+                  </span>
+                  <span className="sm:hidden">
+                    {parseInt(product.Quantity) > 0 ? 'Out' : 'In'}
+                  </span>
                 </button>
                 <button
                   onClick={() => handleDelete(product.id)}
-                  className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700"
+                  className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 flex items-center justify-center"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             )}

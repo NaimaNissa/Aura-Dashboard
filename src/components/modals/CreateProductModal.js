@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen } from 'lucide-react';
+import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen, Plus, Trash2, Edit3, Save } from 'lucide-react';
 import { createProduct, updateProduct } from '../../store/slices/productSlice';
 import { closeModal } from '../../store/slices/uiSlice';
+import { collection, getDocs, query, orderBy, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { getActiveCategories } from '../../lib/categoryService';
 
 export default function CreateProductModal() {
   const dispatch = useDispatch();
@@ -13,12 +16,15 @@ export default function CreateProductModal() {
   
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [colorOptions, setColorOptions] = useState([]);
+  const [loadingColors, setLoadingColors] = useState(false);
+  const [editingColor, setEditingColor] = useState(null);
+  const [newColor, setNewColor] = useState({ name: '', hex: '#000000', displayName: '' });
 
   // Load categories
   const loadCategories = async () => {
     try {
       setLoadingCategories(true);
-      const { getActiveCategories } = await import('../../lib/categoryService');
       const categoriesData = await getActiveCategories();
       setCategories(categoriesData);
     } catch (error) {
@@ -27,6 +33,28 @@ export default function CreateProductModal() {
       setLoadingCategories(false);
     }
   };
+
+  // Load color options
+  const loadColorOptions = async () => {
+    try {
+      setLoadingColors(true);
+      const colorsRef = collection(db, 'colorOptions');
+      const q = query(colorsRef, orderBy('name', 'asc'));
+      const snapshot = await getDocs(q);
+      
+      const colorsData = [];
+      snapshot.forEach((doc) => {
+        colorsData.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setColorOptions(colorsData);
+    } catch (error) {
+      console.error('Error loading color options:', error);
+    } finally {
+      setLoadingColors(false);
+    }
+  };
+
 
   const [formData, setFormData] = useState({
     productname: '',
@@ -46,6 +74,71 @@ export default function CreateProductModal() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Color management functions
+  const handleAddColor = async () => {
+    if (!newColor.name.trim() || !newColor.displayName.trim()) return;
+    
+    try {
+      const colorData = {
+        name: newColor.name.toLowerCase().replace(/\s+/g, ''),
+        displayName: newColor.displayName,
+        hex: newColor.hex,
+        createdAt: new Date().toISOString()
+      };
+      
+      await addDoc(collection(db, 'colorOptions'), colorData);
+      setNewColor({ name: '', hex: '#000000', displayName: '' });
+      loadColorOptions(); // Reload colors
+    } catch (error) {
+      console.error('Error adding color:', error);
+    }
+  };
+
+  const handleEditColor = (color) => {
+    setEditingColor(color);
+    setNewColor({
+      name: color.name,
+      hex: color.hex,
+      displayName: color.displayName
+    });
+  };
+
+  const handleUpdateColor = async () => {
+    if (!editingColor || !newColor.name.trim() || !newColor.displayName.trim()) return;
+    
+    try {
+      const colorData = {
+        name: newColor.name.toLowerCase().replace(/\s+/g, ''),
+        displayName: newColor.displayName,
+        hex: newColor.hex,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await updateDoc(doc(db, 'colorOptions', editingColor.id), colorData);
+      setEditingColor(null);
+      setNewColor({ name: '', hex: '#000000', displayName: '' });
+      loadColorOptions(); // Reload colors
+    } catch (error) {
+      console.error('Error updating color:', error);
+    }
+  };
+
+  const handleDeleteColor = async (colorId) => {
+    if (!confirm('Are you sure you want to delete this color?')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'colorOptions', colorId));
+      loadColorOptions(); // Reload colors
+    } catch (error) {
+      console.error('Error deleting color:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingColor(null);
+    setNewColor({ name: '', hex: '#000000', displayName: '' });
   };
 
   const handleSubmit = async (e) => {
@@ -89,15 +182,16 @@ export default function CreateProductModal() {
     });
   };
 
-  // Load categories when modal opens
+  // Load categories and colors when modal opens
   useEffect(() => {
     if (modals.createProduct) {
       loadCategories();
+      loadColorOptions();
     }
   }, [modals.createProduct]);
 
   // Load edit data if editing
-  React.useEffect(() => {
+  useEffect(() => {
     if (modals.createProductData) {
       setFormData({
         productname: modals.createProductData.productname || '',
@@ -288,21 +382,129 @@ export default function CreateProductModal() {
             </div>
           </div>
 
-          {/* Colors */}
+          {/* Color Management */}
           <div>
-            <label htmlFor="Colors" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               <Palette className="w-4 h-4 inline mr-1" />
-              Colors (comma separated)
+              Product Colors
             </label>
-            <input
-              id="Colors"
-              name="Colors"
-              type="text"
-              value={formData.Colors}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-              placeholder="Red, Blue, Green"
-            />
+            
+            {/* Selected Colors Display */}
+            <div className="mb-3">
+              <input
+                type="text"
+                value={formData.Colors}
+                onChange={(e) => setFormData({ ...formData, Colors: e.target.value })}
+                placeholder="e.g., Black, White, Red, Blue (separate with commas)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter colors separated by commas (e.g., Black, White, Red, Blue)
+              </p>
+            </div>
+
+            {/* Color Management Section */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <Palette className="w-4 h-4" />
+                Manage Color Options
+              </h4>
+              
+              {/* Add/Edit Color Form */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                <input
+                  type="text"
+                  placeholder="Color name (e.g., black)"
+                  value={newColor.name}
+                  onChange={(e) => setNewColor({ ...newColor, name: e.target.value })}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                />
+                <input
+                  type="text"
+                  placeholder="Display name (e.g., Black)"
+                  value={newColor.displayName}
+                  onChange={(e) => setNewColor({ ...newColor, displayName: e.target.value })}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                />
+                <input
+                  type="color"
+                  value={newColor.hex}
+                  onChange={(e) => setNewColor({ ...newColor, hex: e.target.value })}
+                  className="w-full h-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex gap-2">
+                  {editingColor ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleUpdateColor}
+                        className="flex-1 bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 flex items-center justify-center gap-1"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="flex-1 bg-gray-600 text-white px-3 py-2 rounded-md hover:bg-gray-700 flex items-center justify-center gap-1"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleAddColor}
+                      className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 flex items-center justify-center gap-1"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Color Options List */}
+              <div className="max-h-40 overflow-y-auto">
+                {loadingColors ? (
+                  <p className="text-sm text-gray-500">Loading colors...</p>
+                ) : colorOptions.length === 0 ? (
+                  <p className="text-sm text-gray-500">No colors available. Add some colors above.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {colorOptions.map((color) => (
+                      <div key={color.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded border"
+                            style={{ backgroundColor: color.hex }}
+                          ></div>
+                          <span className="text-sm font-medium">{color.displayName}</span>
+                          <span className="text-xs text-gray-500">({color.name})</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleEditColor(color)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteColor(color.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Key Features */}

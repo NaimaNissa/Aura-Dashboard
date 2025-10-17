@@ -21,11 +21,10 @@ export default function CategoriesPage() {
     isActive: true
   });
 
-  // Predefined icons for categories
+  // Predefined icons for categories (20 carefully selected tech icons)
   const categoryIcons = [
     '📱', '💻', '🎧', '📷', '⌚', '🎮', '🔌', '🔋', '📺', '🖥️',
-    '⌨️', '🖱️', '📞', '📠', '💾', '💿', '🔊', '🎵', '📻', '📹',
-    '📷', '🔍', '💡', '🔧', '⚡', '🔌', '📡', '🛰️', '🎯', '📊'
+    '⌨️', '🖱️', '📞', '📠', '💾', '💿', '🔊', '🎵', '📻', '📹'
   ];
 
   // Predefined colors for categories
@@ -215,7 +214,7 @@ export default function CategoriesPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                     placeholder="e.g., Smartphones, Laptops"
                     required
                   />
@@ -228,7 +227,7 @@ export default function CategoriesPage() {
                     type="text"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                     placeholder="Brief description of the category"
                   />
                 </div>
@@ -237,28 +236,37 @@ export default function CategoriesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Icon
+                    Icon (Choose from 20 options)
                   </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={formData.icon}
                       onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                      className="w-16 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                      className="w-16 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-black"
                       maxLength="2"
+                      placeholder="📱"
                     />
-                    <div className="flex flex-wrap gap-1">
-                      {categoryIcons.slice(0, 10).map((icon, index) => (
+                    <div className="grid grid-cols-10 gap-1 max-w-full">
+                      {categoryIcons.map((icon, index) => (
                         <button
                           key={index}
                           type="button"
                           onClick={() => setFormData({ ...formData, icon })}
-                          className="w-8 h-8 border border-gray-300 rounded hover:bg-gray-100 flex items-center justify-center"
+                          className={`w-8 h-8 border rounded hover:bg-gray-100 flex items-center justify-center transition-colors ${
+                            formData.icon === icon 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-300'
+                          }`}
+                          title={`Select ${icon} icon`}
                         >
                           {icon}
                         </button>
                       ))}
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Click any icon above to select it, or type your own emoji
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -381,13 +389,13 @@ export default function CategoriesPage() {
                                 type="text"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                className="px-2 py-1 border border-gray-300 rounded text-sm text-black"
                               />
                               <input
                                 type="text"
                                 value={formData.icon}
                                 onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                className="w-8 px-1 py-1 border border-gray-300 rounded text-center"
+                                className="w-8 px-1 py-1 border border-gray-300 rounded text-center text-black"
                                 maxLength="2"
                               />
                             </div>
@@ -413,7 +421,7 @@ export default function CategoriesPage() {
                               type="text"
                               value={formData.description}
                               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-black"
                             />
                           ) : (
                             <div className="text-sm text-gray-600">
