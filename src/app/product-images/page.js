@@ -26,6 +26,18 @@ export default function ProductImagesPage() {
     fetchProducts();
   }, [isAuthenticated, router]);
 
+  // Auto-refresh products when window regains focus (to catch updates from other tabs)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (isAuthenticated) {
+        fetchProducts();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [isAuthenticated]);
+
   const fetchProducts = async () => {
     try {
       setLoading(true);

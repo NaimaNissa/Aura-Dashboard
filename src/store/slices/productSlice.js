@@ -3,6 +3,7 @@ import {
   collection, 
   addDoc, 
   getDocs, 
+  getDoc,
   doc, 
   updateDoc, 
   deleteDoc, 
@@ -16,8 +17,29 @@ export const createProduct = createAsyncThunk(
   'product/createProduct',
   async (productData, { rejectWithValue }) => {
     try {
+      // Initialize colorImages structure from Colors field
+      let colorImages = {};
+      if (productData.Colors) {
+        const colors = productData.Colors.split(',')
+          .map(c => c.trim())
+          .filter(c => c);
+        
+        colors.forEach(color => {
+          const colorKey = color.toLowerCase().replace(/\s+/g, '');
+          colorImages[colorKey] = {
+            name: color,
+            displayName: color,
+            images: productData.productImg 
+              ? [productData.productImg] 
+              : ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop'],
+            price: parseFloat(productData.Price || 0)
+          };
+        });
+      }
+      
       const newProduct = {
         ...productData,
+        colorImages,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -65,8 +87,55 @@ export const updateProduct = createAsyncThunk(
   async ({ id, updates }, { rejectWithValue }) => {
     try {
       const productRef = doc(db, 'products', id);
+      
+      // Get current product data to sync colorImages
+      const currentProduct = await getDoc(productRef);
+      const currentData = currentProduct.data();
+      
+      // If Colors field is being updated, synchronize colorImages
+      let syncedColorImages = currentData?.colorImages || {};
+      if (updates.Colors !== undefined && updates.Colors !== currentData?.Colors) {
+        // If Colors is empty or not provided, clear colorImages
+        if (!updates.Colors || updates.Colors.trim() === '') {
+          syncedColorImages = {};
+        } else {
+          const newColors = updates.Colors.split(',')
+            .map(c => c.trim())
+            .filter(c => c);
+          
+          // Create a new colorImages structure based on the new Colors
+          const updatedColorImages = {};
+          
+          newColors.forEach(color => {
+            const colorKey = color.toLowerCase().replace(/\s+/g, '');
+            
+            // If this color already exists in colorImages, keep its images and data
+            if (syncedColorImages[colorKey]) {
+              updatedColorImages[colorKey] = {
+                ...syncedColorImages[colorKey],
+                name: color,
+                displayName: color
+              };
+            } else {
+              // Create new color entry with default image
+              updatedColorImages[colorKey] = {
+                name: color,
+                displayName: color,
+                images: updates.productImg || currentData?.productImg 
+                  ? [updates.productImg || currentData.productImg] 
+                  : ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop'],
+                price: parseFloat(updates.Price || currentData?.Price || 0)
+              };
+            }
+          });
+          
+          syncedColorImages = updatedColorImages;
+        }
+      }
+      
       const updatedData = {
         ...updates,
+        colorImages: syncedColorImages,
         updatedAt: new Date().toISOString()
       };
       
