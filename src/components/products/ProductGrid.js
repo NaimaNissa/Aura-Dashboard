@@ -5,6 +5,93 @@ import { Edit, Trash2, Eye, Package } from 'lucide-react';
 import { deleteProduct, updateProduct } from '../../store/slices/productSlice';
 import { openModal } from '../../store/slices/uiSlice';
 
+// Helper function to render text with bold formatting (**text** or __text__)
+const renderFormattedText = (text) => {
+  if (!text) return null;
+  
+  // Split by **text** or __text__ patterns
+  const parts = [];
+  let lastIndex = 0;
+  const boldPattern = /\*\*(.*?)\*\*|__(.*?)__/g;
+  let match;
+  
+  while ((match = boldPattern.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push({ text: text.substring(lastIndex, match.index), bold: false });
+    }
+    // Add the bold text (match[1] for ** or match[2] for __)
+    parts.push({ text: match[1] || match[2], bold: true });
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({ text: text.substring(lastIndex), bold: false });
+  }
+  
+  // If no bold formatting found, return original text
+  if (parts.length === 0) {
+    return text;
+  }
+  
+  // Render parts with bold formatting
+  return (
+    <>
+      {parts.map((part, index) => 
+        part.bold ? (
+          <strong key={index} className="font-semibold">{part.text}</strong>
+        ) : (
+          <span key={index}>{part.text}</span>
+        )
+      )}
+    </>
+  );
+};
+
+// Helper function to render description with bullet points and bold text support
+const renderDescription = (description) => {
+  if (!description) return null;
+  
+  // Check if description contains bullet points (lines starting with - or *)
+  const lines = description.split('\n');
+  const bulletLines = lines.filter(line => 
+    line.trim().startsWith('-') || line.trim().startsWith('*')
+  );
+  const hasBulletPoints = bulletLines.length > 0;
+  
+  if (hasBulletPoints) {
+    // Render as bullet list (limit to first 3 items for display)
+    const displayItems = bulletLines.slice(0, 3).map((line, index) => {
+      // Remove the bullet marker and trim
+      const text = line.trim().replace(/^[-*]\s*/, '');
+      return text ? (
+        <li key={index} className="line-clamp-1">
+          {renderFormattedText(text)}
+        </li>
+      ) : null;
+    }).filter(Boolean);
+    
+    return (
+      <div className="text-gray-600 text-xs sm:text-sm mb-3">
+        <ul className="space-y-0.5 list-disc list-inside">
+          {displayItems}
+        </ul>
+        {bulletLines.length > 3 && (
+          <span className="text-gray-400 text-xs">+{bulletLines.length - 3} more</span>
+        )}
+      </div>
+    );
+  }
+  
+  // Render as regular text with bold support
+  return (
+    <p className="text-gray-600 text-xs sm:text-sm mb-3 line-clamp-2">
+      {renderFormattedText(description)}
+    </p>
+  );
+};
+
 export default function ProductGrid() {
   const dispatch = useDispatch();
   const { filteredProducts } = useSelector((state) => state.product);
@@ -76,9 +163,7 @@ export default function ProductGrid() {
               {product.productname}
             </h3>
             
-            <p className="text-gray-600 text-xs sm:text-sm mb-3 line-clamp-2">
-              {product.Description}
-            </p>
+            {renderDescription(product.Description)}
 
             {/* Product Details */}
             <div className="space-y-2 mb-4">

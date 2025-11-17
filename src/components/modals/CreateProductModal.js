@@ -41,6 +41,7 @@ export default function CreateProductModal() {
     Colors: '',
     KeyFeatures: '',
     category: '',
+    tax: '',
   });
 
   const handleChange = (e) => {
@@ -88,6 +89,7 @@ export default function CreateProductModal() {
       Colors: '',
       KeyFeatures: '',
       category: '',
+      tax: '',
     });
   };
 
@@ -112,6 +114,7 @@ export default function CreateProductModal() {
         Colors: modals.createProductData.Colors || '',
         KeyFeatures: modals.createProductData.KeyFeatures || '',
         category: modals.createProductData.category || '',
+        tax: modals.createProductData.tax || '',
       });
     }
   }, [modals.createProductData]);
@@ -198,12 +201,15 @@ export default function CreateProductModal() {
             <textarea
               id="Description"
               name="Description"
-              rows={3}
+              rows={4}
               value={formData.Description}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-              placeholder="Enter product description"
+              placeholder="Enter product description. Use **text** for bold, or start lines with - or * for bullets"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Tips: Use <strong>**text**</strong> or <strong>__text__</strong> for bold text. Start lines with &quot;-&quot; or &quot;*&quot; to create bullet points.
+            </p>
           </div>
 
           {/* Price and Quantity */}
@@ -240,6 +246,27 @@ export default function CreateProductModal() {
                 placeholder="0"
               />
             </div>
+          </div>
+
+          {/* Tax */}
+          <div>
+            <label htmlFor="tax" className="block text-sm font-medium text-gray-700 mb-1">
+              <DollarSign className="w-4 h-4 inline mr-1" />
+              Tax Amount (per unit)
+            </label>
+            <input
+              id="tax"
+              name="tax"
+              type="number"
+              step="0.01"
+              value={formData.tax}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+              placeholder="0.00"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Tax amount per product unit. This will be multiplied by quantity in cart.
+            </p>
           </div>
 
           {/* Image URL and Category */}
