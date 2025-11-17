@@ -39,11 +39,13 @@ await user.reload();
       <h2 className="text-xl font-bold mb-4">User Profile</h2>
       <div className="mb-4">
         {preview ? (
-          // For local preview URLs, fallback to <img> as next/image can have issues
-          <img
+          <Image
             src={preview}
             alt="Avatar Preview"
+            width={96}
+            height={96}
             className="w-24 h-24 rounded-full object-cover"
+            unoptimized
           />
         ) : (
           <Image
@@ -52,6 +54,7 @@ await user.reload();
             width={96}
             height={96}
             className="rounded-full object-cover"
+            unoptimized
           />
         )}
       </div>

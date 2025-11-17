@@ -1,6 +1,7 @@
 'use client';
 
 import { useSelector, useDispatch } from 'react-redux';
+import Image from 'next/image';
 import { Edit, Trash2, Eye, Package } from 'lucide-react';
 import { deleteProduct, updateProduct } from '../../store/slices/productSlice';
 import { openModal } from '../../store/slices/uiSlice';
@@ -134,10 +135,13 @@ export default function ProductGrid() {
           {/* Product Image */}
           <div className="aspect-square bg-gray-100 relative">
             {product.productImg ? (
-              <img
+              <Image
                 src={product.productImg}
-                alt={product.productname}
+                alt={product.productname || 'Product image'}
+                width={400}
+                height={400}
                 className="w-full h-full object-cover"
+                unoptimized
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">

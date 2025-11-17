@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen } from 'lucide-react';
+import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen, Plus, Trash2 } from 'lucide-react';
 import { createProduct, updateProduct } from '../../store/slices/productSlice';
 import { closeModal } from '../../store/slices/uiSlice';
 import { collection } from 'firebase/firestore';
@@ -41,13 +41,41 @@ export default function CreateProductModal() {
     Colors: '',
     KeyFeatures: '',
     category: '',
-    tax: '',
+    tax: [], // Array of {quantity: number, taxAmount: number}
   });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  // Handle tax entries
+  const handleAddTaxEntry = () => {
+    setFormData({
+      ...formData,
+      tax: [...formData.tax, { quantity: '', taxAmount: '' }]
+    });
+  };
+
+  const handleTaxChange = (index, field, value) => {
+    const updatedTax = [...formData.tax];
+    updatedTax[index] = {
+      ...updatedTax[index],
+      [field]: field === 'quantity' ? parseInt(value) || '' : parseFloat(value) || ''
+    };
+    setFormData({
+      ...formData,
+      tax: updatedTax
+    });
+  };
+
+  const handleRemoveTaxEntry = (index) => {
+    const updatedTax = formData.tax.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      tax: updatedTax
     });
   };
 
@@ -89,7 +117,7 @@ export default function CreateProductModal() {
       Colors: '',
       KeyFeatures: '',
       category: '',
-      tax: '',
+      tax: [],
     });
   };
 
@@ -103,6 +131,15 @@ export default function CreateProductModal() {
   // Load edit data if editing
   useEffect(() => {
     if (modals.createProductData) {
+      // Handle both old format (string/number) and new format (array)
+      let taxData = modals.createProductData.tax || [];
+      if (typeof taxData === 'string' || typeof taxData === 'number') {
+        // Convert old format to new format - create entry for quantity 1
+        taxData = [{ quantity: 1, taxAmount: parseFloat(taxData) || 0 }];
+      } else if (!Array.isArray(taxData)) {
+        taxData = [];
+      }
+
       setFormData({
         productname: modals.createProductData.productname || '',
         brand: modals.createProductData.brand || '',
@@ -114,7 +151,7 @@ export default function CreateProductModal() {
         Colors: modals.createProductData.Colors || '',
         KeyFeatures: modals.createProductData.KeyFeatures || '',
         category: modals.createProductData.category || '',
-        tax: modals.createProductData.tax || '',
+        tax: taxData,
       });
     }
   }, [modals.createProductData]);
@@ -248,25 +285,81 @@ export default function CreateProductModal() {
             </div>
           </div>
 
-          {/* Tax */}
+          {/* Tax by Quantity */}
           <div>
-            <label htmlFor="tax" className="block text-sm font-medium text-gray-700 mb-1">
-              <DollarSign className="w-4 h-4 inline mr-1" />
-              Tax Amount (per unit)
-            </label>
-            <input
-              id="tax"
-              name="tax"
-              type="number"
-              step="0.01"
-              value={formData.tax}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-              placeholder="0.00"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Tax amount per product unit. This will be multiplied by quantity in cart.
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <DollarSign className="w-4 h-4 inline mr-1" />
+                Tax Amount by Quantity
+              </label>
+              <button
+                type="button"
+                onClick={handleAddTaxEntry}
+                className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Add Tax Entry
+              </button>
+            </div>
+            
+            {formData.tax.length === 0 ? (
+              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                <p className="text-sm text-gray-500 mb-2">No tax entries added</p>
+                <p className="text-xs text-gray-400">Click &quot;Add Tax Entry&quot; to set tax for specific quantities</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {formData.tax.map((taxEntry, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg bg-gray-50">
+                    <div className="flex-1 grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Quantity</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={taxEntry.quantity || ''}
+                          onChange={(e) => handleTaxChange(index, 'quantity', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          placeholder="e.g., 1, 2, 3"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Tax Amount ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={taxEntry.taxAmount || ''}
+                          onChange={(e) => handleTaxChange(index, 'taxAmount', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTaxEntry(index)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove this tax entry"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800 font-medium mb-1">
+                💡 How it works:
+              </p>
+              <ul className="text-xs text-blue-700 space-y-1">
+                <li>• Add tax entries for specific quantities (e.g., Qty 1 = $5.00, Qty 2 = $10.00)</li>
+                <li>• Tax will be applied based on the quantity customer selects</li>
+                <li>• If quantity doesn&apos;t match any entry, the closest lower quantity&apos;s tax will be used</li>
+                <li>• Example: If you set Qty 1 = $5 and Qty 3 = $15, then Qty 2 will use $5 tax</li>
+              </ul>
+            </div>
           </div>
 
           {/* Image URL and Category */}

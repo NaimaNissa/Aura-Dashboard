@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { Image, Package, Plus, Trash2, Upload, Eye, Edit3, Save, X, ArrowUp, ArrowDown, Move } from 'lucide-react';
+import Image from 'next/image';
+import { Image as ImageIcon, Package, Plus, Trash2, Upload, Eye, Edit3, Save, X, ArrowUp, ArrowDown, Move } from 'lucide-react';
 import SimpleNav from '../../components/SimpleNav';
 
 export default function ProductImagesPage() {
@@ -323,7 +324,7 @@ export default function ProductImagesPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Image className="w-6 h-6" />
+              <ImageIcon className="w-6 h-6" aria-label="Product images" />
               Product Image Management
             </h1>
             <p className="text-gray-600 mt-1">
@@ -408,7 +409,7 @@ export default function ProductImagesPage() {
               {selectedProduct ? (
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Image className="w-5 h-5" />
+                    <ImageIcon className="w-5 h-5" aria-label="Product images" />
                     {selectedProduct.productname}
                   </h2>
                   
@@ -474,13 +475,13 @@ export default function ProductImagesPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {colorData.images.map((imageUrl, index) => (
                             <div key={index} className="relative group">
-                              <img
+                              <Image
                                 src={imageUrl}
                                 alt={`${colorData.name} ${index + 1}`}
+                                width={96}
+                                height={96}
                                 className="w-full h-24 object-cover rounded-lg border"
-                                onError={(e) => {
-                                  e.target.src = 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop';
-                                }}
+                                unoptimized
                               />
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
                                 <div className="opacity-0 group-hover:opacity-100 flex gap-1">
