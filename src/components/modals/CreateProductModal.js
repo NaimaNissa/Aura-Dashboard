@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen, Plus, Trash2 } from 'lucide-react';
+import { X, Package, DollarSign, Hash, Palette, FileText, Star, FolderOpen, Plus, Trash2, Truck } from 'lucide-react';
 import { createProduct, updateProduct } from '../../store/slices/productSlice';
 import { closeModal } from '../../store/slices/uiSlice';
 import { collection } from 'firebase/firestore';
@@ -42,12 +42,15 @@ export default function CreateProductModal() {
     KeyFeatures: '',
     category: '',
     tax: [], // Array of {quantity: number, taxAmount: number}
+    discount: '', // Discount percentage (0-100)
+    freeShipping: false, // Free shipping option
   });
 
   const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
   };
 
@@ -84,10 +87,20 @@ export default function CreateProductModal() {
     
     if (!formData.productname.trim() || !formData.Price.trim()) return;
 
+    // Calculate originalPrice from discount if discount is set
+    let originalPrice = formData.Price;
+    if (formData.discount && parseFloat(formData.discount) > 0) {
+      const discountPercent = parseFloat(formData.discount) / 100;
+      const price = parseFloat(formData.Price);
+      originalPrice = (price / (1 - discountPercent)).toFixed(2);
+    }
+
     const productData = {
       ...formData,
       Price: formData.Price,
       Quantity: formData.Quantity || '0',
+      discount: formData.discount || '',
+      originalPrice: formData.discount && parseFloat(formData.discount) > 0 ? originalPrice : '',
     };
 
     if (modals.createProductData) {
@@ -118,6 +131,8 @@ export default function CreateProductModal() {
       KeyFeatures: '',
       category: '',
       tax: [],
+      discount: '',
+      freeShipping: false,
     });
   };
 
@@ -140,6 +155,16 @@ export default function CreateProductModal() {
         taxData = [];
       }
 
+      // Calculate discount from originalPrice if discount not set
+      let discountValue = modals.createProductData.discount || '';
+      if (!discountValue && modals.createProductData.originalPrice && modals.createProductData.Price) {
+        const originalPrice = parseFloat(modals.createProductData.originalPrice);
+        const price = parseFloat(modals.createProductData.Price);
+        if (originalPrice > price) {
+          discountValue = (((originalPrice - price) / originalPrice) * 100).toFixed(2);
+        }
+      }
+
       setFormData({
         productname: modals.createProductData.productname || '',
         brand: modals.createProductData.brand || '',
@@ -152,6 +177,8 @@ export default function CreateProductModal() {
         KeyFeatures: modals.createProductData.KeyFeatures || '',
         category: modals.createProductData.category || '',
         tax: taxData,
+        discount: discountValue,
+        freeShipping: modals.createProductData.freeShipping || false,
       });
     }
   }, [modals.createProductData]);
@@ -249,8 +276,8 @@ export default function CreateProductModal() {
             </p>
           </div>
 
-          {/* Price and Quantity */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Price, Quantity, and Discount */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="Price" className="block text-sm font-medium text-gray-700 mb-1">
                 <DollarSign className="w-4 h-4 inline mr-1" />
@@ -282,6 +309,29 @@ export default function CreateProductModal() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 placeholder="0"
               />
+            </div>
+
+            <div>
+              <label htmlFor="discount" className="block text-sm font-medium text-gray-700 mb-1">
+                Discount (%)
+              </label>
+              <input
+                id="discount"
+                name="discount"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={formData.discount}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                placeholder="0"
+              />
+              {formData.discount && parseFloat(formData.discount) > 0 && formData.Price && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Original: ${(parseFloat(formData.Price) / (1 - parseFloat(formData.discount) / 100)).toFixed(2)}
+                </p>
+              )}
             </div>
           </div>
 
@@ -361,6 +411,27 @@ export default function CreateProductModal() {
               </ul>
             </div>
           </div>
+
+          {/* Free Shipping Option */}
+          <div className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg bg-gray-50">
+            <input
+              type="checkbox"
+              id="freeShipping"
+              name="freeShipping"
+              checked={formData.freeShipping}
+              onChange={handleChange}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="freeShipping" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+              <Truck className="w-4 h-4 text-green-600" />
+              <span>Enable Free Shipping for this product</span>
+            </label>
+          </div>
+          {formData.freeShipping && (
+            <p className="text-xs text-green-600 ml-1">
+              ✓ This product will show &quot;Free Shipping&quot; badge and customers won&apos;t be charged shipping for this item
+            </p>
+          )}
 
           {/* Image URL and Category */}
           <div className="grid grid-cols-2 gap-4">
