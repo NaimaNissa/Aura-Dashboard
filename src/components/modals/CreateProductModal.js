@@ -44,6 +44,7 @@ export default function CreateProductModal() {
     tax: [], // Array of {quantity: number, taxAmount: number}
     discount: '', // Discount percentage (0-100)
     freeShipping: false, // Free shipping option
+    kitStyles: [], // Array of {name: string, price: number}
   });
 
   const handleChange = (e) => {
@@ -79,6 +80,34 @@ export default function CreateProductModal() {
     setFormData({
       ...formData,
       tax: updatedTax
+    });
+  };
+
+  // Handle kit style entries
+  const handleAddKitStyle = () => {
+    setFormData({
+      ...formData,
+      kitStyles: [...formData.kitStyles, { name: '', price: '' }]
+    });
+  };
+
+  const handleKitStyleChange = (index, field, value) => {
+    const updatedKitStyles = [...formData.kitStyles];
+    updatedKitStyles[index] = {
+      ...updatedKitStyles[index],
+      [field]: field === 'price' ? parseFloat(value) || '' : value
+    };
+    setFormData({
+      ...formData,
+      kitStyles: updatedKitStyles
+    });
+  };
+
+  const handleRemoveKitStyle = (index) => {
+    const updatedKitStyles = formData.kitStyles.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      kitStyles: updatedKitStyles
     });
   };
 
@@ -133,6 +162,7 @@ export default function CreateProductModal() {
       tax: [],
       discount: '',
       freeShipping: false,
+      kitStyles: [],
     });
   };
 
@@ -179,6 +209,7 @@ export default function CreateProductModal() {
         tax: taxData,
         discount: discountValue,
         freeShipping: modals.createProductData.freeShipping || false,
+        kitStyles: modals.createProductData.kitStyles || [],
       });
     }
   }, [modals.createProductData]);
@@ -432,6 +463,82 @@ export default function CreateProductModal() {
               ✓ This product will show &quot;Free Shipping&quot; badge and customers won&apos;t be charged shipping for this item
             </p>
           )}
+
+          {/* Kit Styles */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Package className="w-4 h-4 inline mr-1" />
+                Kit Styles (Optional)
+              </label>
+              <button
+                type="button"
+                onClick={handleAddKitStyle}
+                className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Add Kit Style
+              </button>
+            </div>
+            
+            {formData.kitStyles.length === 0 ? (
+              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                <p className="text-sm text-gray-500 mb-2">No kit styles added</p>
+                <p className="text-xs text-gray-400">Click &quot;Add Kit Style&quot; to create different kit options with different prices</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {formData.kitStyles.map((kitStyle, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg bg-gray-50">
+                    <div className="flex-1 grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Kit Name</label>
+                        <input
+                          type="text"
+                          value={kitStyle.name || ''}
+                          onChange={(e) => handleKitStyleChange(index, 'name', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          placeholder="e.g., Base, Accessory Kit & 20 Exposures"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Price ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={kitStyle.price || ''}
+                          onChange={(e) => handleKitStyleChange(index, 'price', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveKitStyle(index)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove this kit style"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800 font-medium mb-1">
+                💡 How it works:
+              </p>
+              <ul className="text-xs text-blue-700 space-y-1">
+                <li>• Add different kit options (e.g., Base, Accessory Kit & 20 Exposures, Accessory Kit & 40 Exposures)</li>
+                <li>• Each kit can have its own price</li>
+                <li>• Customers can select a kit style on the product page</li>
+                <li>• The price will update based on the selected kit</li>
+              </ul>
+            </div>
+          </div>
 
           {/* Image URL and Category */}
           <div className="grid grid-cols-2 gap-4">
